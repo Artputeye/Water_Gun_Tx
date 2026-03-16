@@ -80,6 +80,13 @@
             </button>
           </div>
         </form>
+
+        <div class="para-name"><span>MAC Receive</span></div>
+        <form class="setting-input" data-setting="mac_receive">
+          <div class="form-row">
+            <input class="text-input" type="text" id="mac_receive" name="mac_receive" placeholder="00:1A:2B:3C:4D:5E" required />
+          </div>
+        </form>
         <!--////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
 
         <div class="block-ipstatic" id="ip-hide">
@@ -108,7 +115,7 @@
         </div>
 
         <!--////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
-        <div class="para-name"><span>MQTT User</span></div>
+        <!-- <div class="para-name"><span>MQTT User</span></div>
         <form class="setting-input" data-setting="mqtt_server">
           <div class="form-row">
             <input class="text-input" type="text" id="mqtt_user" name="mqtt_user" placeholder="MQTT User" required />
@@ -121,7 +128,7 @@
             <input id="mqtt_password" type="password" aria-describedby="toggleHint" placeholder="Password" />
             <button id="mqtt-toggle" class="icon-btn" type="button" data-target="mqtt_password" aria-pressed="false"
               aria-label="แสดงรหัสผ่าน">
-              <!-- ไอคอนตาแบบง่าย (SVG) -->
+             
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5" />
                 <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" />
@@ -144,7 +151,7 @@
             <input class="text-input" type="text" id="mqtt_port" name="mqtt_port" placeholder="1883" required />
           </div>
         </form>
-      </div>
+      </div> -->
 
       <div class="card-middle">
         <button class="button-save" onclick="sendConfig()">SAVE</button>

@@ -44,6 +44,12 @@ void setup()
   wifi_Setup();
   /////////////////////////////////////////////////////
 
+  // === IO Setup ===
+  setupIO();
+  Serial.println("IO Setup");
+  delay(300);
+
+   // === IOT Setup ===
   iotHAsetup();
   Serial.println("Home Assistant Initialized");
   delay(300);
@@ -64,6 +70,11 @@ void setup()
   // === NTP Setup ===
   NTPbegin();
   Serial.println("NTP Server Configured");
+  delay(300);
+
+  //===  ESP NOW Setup ===
+  setupEspNow();
+  Serial.println("ESP NOW Configured");
   delay(300);
 
   // === Watchdog Setup ===
@@ -102,8 +113,9 @@ void TaskMain(void *pvParameters) // CPU Core0
 {
   while (1)
   {
-    unsigned long last = 0;
-    unsigned long lastDiagnostic = 0;
+    static unsigned long last = 0;
+    static unsigned long lastDiagnostic = 0;
+
     // Main function
     operation();
     // Home Assistant Diagnostic update every 60 seconds
@@ -137,7 +149,7 @@ void TaskSub(void *pvParameters) // CPU Core1
 
     if ((millis() - lastStack) > 10000)
     {
-      
+
       lastStack = millis();
       UBaseType_t stackRemaining = uxTaskGetStackHighWaterMark(NULL);
       showAPClients();

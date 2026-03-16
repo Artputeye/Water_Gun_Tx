@@ -19,6 +19,7 @@
 #include <esp_task_wdt.h>
 #include "base64.h"
 #include <time.h>
+#include <esp_now.h>
 
 #include <FS.h>
 #ifdef ESP32
@@ -79,7 +80,8 @@ extern char D_Model[15];
 extern char user[10];
 extern char pass[10];
 
-extern uint8_t Mac[6];
+extern char MAC_RECEIVE[18];
+extern uint8_t receiverMAC[6];
 
 extern float power_check;
 extern const char *targetDirectory;

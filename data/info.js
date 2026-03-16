@@ -58,7 +58,7 @@ document.getElementById("sendBtn").addEventListener("click", () => {
     const msg = document.getElementById("messageInput").value.trim();
     if (msg) {
         fetchToserver(msg);
-        appendToTerminal(`${ts} Sent : ${msg}`);
+        appendToTerminal(`Sent : ${msg}`);
         document.getElementById("messageInput").value = "";
     }
 });
@@ -73,7 +73,7 @@ messageInput.addEventListener("keydown", (e) => {
     if (e.key === 'Enter') {
         if (msg) {
             fetchToserver(msg);
-            appendToTerminal(`${ts} Sent : ${msg}`);
+            appendToTerminal(`Sent : ${msg}`);
             document.getElementById("messageInput").value = "";
         }
     }

@@ -25,7 +25,8 @@ char D_Model[15] = "IoT Solar";
 char user[10] = "admin"; // OTA Authentication pass
 char pass[10] = "12345678";
 
-uint8_t Mac[6];
+char MAC_RECEIVE[18];
+uint8_t receiverMAC[6];
 
 int ledState = LOW;
 

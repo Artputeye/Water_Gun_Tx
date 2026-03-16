@@ -70,6 +70,9 @@ void wifi_Setup()
         setupWiFiMode();
     }
     lastChangeTime = millis();
+    WiFi.setSleep(false);
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE);
 }
 
 void mac_config()
@@ -100,6 +103,26 @@ void mac_config()
     Serial.println(MacAddr);
     Serial.println("UniqueId assigned to HADevice (using raw bytes)");
     Serial.println("================================");
+}
+
+bool parseMacAddress(const char *macStr, uint8_t mac[6])
+{
+    if (!macStr)
+        return false;
+
+    int values[6];
+
+    if (sscanf(macStr, "%x:%x:%x:%x:%x:%x",
+               &values[0], &values[1], &values[2],
+               &values[3], &values[4], &values[5]) != 6)
+    {
+        return false;
+    }
+
+    for (int i = 0; i < 6; i++)
+        mac[i] = (uint8_t)values[i];
+
+    return true;
 }
 
 void readNetwork()
@@ -143,6 +166,9 @@ void readNetwork()
     strncpy(MQTT_ADDR, doc["mqtt_server"] | "", sizeof(MQTT_ADDR));
     strncpy(MQTT_PORT, doc["mqtt_port"] | "", sizeof(MQTT_PORT));
 
+    // เพิ่มตรงนี้
+    strncpy(MAC_RECEIVE, doc["mac_receive"] | "", sizeof(MAC_RECEIVE));
+
     Serial.printf("WIFI MODE: %s\n", (wifimode == 0 ? "AP" : "STA"));
     Serial.printf("IP CONFIG: %s\n", (ipconfig == 0 ? "DHCP" : "STATIC"));
 
@@ -155,75 +181,64 @@ void readNetwork()
         Serial.printf("SUBNET_MASK: %s\n", SUBNET_MASK);
         Serial.printf("DEFAULT_GATEWAY: %s\n", DEFAULT_GATEWAY);
     }
+
     Serial.printf("MQTT_ADDR: %s\n", MQTT_ADDR);
     Serial.printf("MQTT_USERNAME: %s\n", MQTT_USERNAME);
     Serial.printf("MQTT_PASSWORD: %s\n", MQTT_PASSWORD);
     Serial.printf("MQTT_PORT: %s\n", MQTT_PORT);
+
+    // แสดง MAC
+    // Serial.printf("MAC_RECEIVE: %s\n", MAC_RECEIVE);
+
+    // แปลง MAC string -> uint8_t
+    if (parseMacAddress(MAC_RECEIVE, receiverMAC))
+    {
+        Serial.print("MAC_RECEIVE: ");
+
+        for (int i = 0; i < 6; i++)
+        {
+            Serial.printf("%02X", receiverMAC[i]);
+            if (i < 5)
+                Serial.print(":");
+        }
+
+        Serial.println();
+    }
+    else
+    {
+        Serial.println("Invalid MAC format");
+    }
 }
 
 void setupWiFiMode()
 {
     if (wifimode == 0)
     {
-        Serial.println("📡 Setting WiFi to ACCESS POINT mode");
+        Serial.println("📡 AP Mode");
 
-        // ตั้งค่าโหมด AP
         ledMode = LED_AP_MODE;
         WiFi.mode(WIFI_AP);
 
-        // กำหนดค่า IP ของ AP
-        IPAddress local_IP(192, 168, 4, 1);
-        IPAddress gateway(192, 168, 4, 1);
+        IPAddress ip(192, 168, 4, 1);
         IPAddress subnet(255, 255, 255, 0);
 
-        if (!WiFi.softAPConfig(local_IP, gateway, subnet))
-        {
-            Serial.println("❌ Failed to configure AP");
-        }
-        if (WiFi.softAP(DEVICE_NAME, DEVICE_PASS))
-        {
-            Serial.println("✅ AP Started");
-            Serial.print("AP IP address: ");
-            Serial.println(WiFi.softAPIP());
-        }
-        else
-        {
-            Serial.println("❌ Failed to start AP");
-        }
-        esp_netif_t *ap_netif = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
-        if (ap_netif)
-        {
-            esp_netif_dhcps_stop(ap_netif);
-            esp_netif_ip_info_t ip_info;
-            ip_info.ip.addr = (uint32_t)local_IP;
-            ip_info.gw.addr = (uint32_t)gateway;
-            ip_info.netmask.addr = (uint32_t)subnet;
-            esp_netif_set_ip_info(ap_netif, &ip_info);
-            if (esp_netif_dhcps_start(ap_netif) == ESP_OK)
-            {
-                Serial.println("✅ DHCP server started (esp_netif)");
-            }
-            else
-            {
-                Serial.println("❌ Failed to start DHCP server");
-            }
-        }
-        else
-        {
-            Serial.println("❌ Failed to get AP netif handle");
-        }
-    }
+        WiFi.softAPConfig(ip, ip, subnet);
+        WiFi.softAP(DEVICE_NAME, DEVICE_PASS);
 
-    if (wifimode == 1)
+        Serial.print("AP IP: ");
+        Serial.println(WiFi.softAPIP());
+    }
+    else
     {
-        Serial.println("📡 Setting WiFi to STATION mode");
+        Serial.println("📡 STA Mode");
+
         ledMode = LED_BUSY;
         WiFi.mode(WIFI_STA);
-        WiFi.setSleep(false); // ⭐ สำคัญ
+        WiFi.setSleep(false);
         WiFi.begin(WIFI_NAME, PASSWORD);
     }
 
-    delay(1000);
+    delay(500);
 }
 
 void setupIPConfig()
@@ -345,7 +360,7 @@ void WiFiEvent(WiFiEvent_t event)
 
         // ป้องกัน reconnect ถี่
         static unsigned long lastRetry = 0;
-        if (millis() - lastRetry > 5*60*1000)
+        if (millis() - lastRetry > 5 * 60 * 1000)
         {
             lastRetry = millis();
             Serial.println("🔄 Reconnecting WiFi...");

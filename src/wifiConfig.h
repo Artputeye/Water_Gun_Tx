@@ -9,6 +9,7 @@ void restart();
 void APmode();
 void wifi_Setup();
 void mac_config();
+bool parseMacAddress(const char *macStr, uint8_t mac[6]);
 void readNetwork();
 void setupWiFiMode();
 void setupIPConfig();

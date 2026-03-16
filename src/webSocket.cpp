@@ -92,11 +92,11 @@ void serialSent()
   while (Serial.available() > 0)
   {
     serialData = Serial.readStringUntil('\n');
-    Serial.print("Serial Sent : ");
+    Serial.print("Serial: ");
     Serial.println(serialData);
     wsPrint(serialData);
     len = serialData.length();
-    Serial.println("len Serial: " + String(len));
+    //Serial.println("len Serial: " + String(len));
     delay(10);
   }
 }

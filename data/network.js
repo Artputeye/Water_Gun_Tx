@@ -46,13 +46,16 @@ document.querySelectorAll('.icon-btn').forEach(btn => {
     const targetId = btn.getAttribute('data-target');
     const input = document.getElementById(targetId);
 
-    const isShown = input.type === 'text';
-    input.type = isShown ? 'password' : 'text';
-
+    // --- แก้ไขตรงนี้: เช็คว่ามี input อยู่จริงไหมก่อนทำอย่างอื่น ---
     if (!input) {
       console.error(`Element with id="${targetId}" not found`);
       return;
     }
+    // ------------------------------------------------------
+
+    // เมื่อมั่นใจว่ามี input แน่นอนแล้ว ถึงจะเข้าถึง properties ได้
+    const isShown = input.type === 'text';
+    input.type = isShown ? 'password' : 'text';
 
     btn.setAttribute('aria-pressed', String(!isShown));
     btn.setAttribute('aria-label', isShown ? 'แสดงรหัสผ่าน' : 'ซ่อนรหัสผ่าน');
@@ -65,42 +68,51 @@ window.addEventListener("load", () => {
   loadConfig();
 });
 
+function setElementValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.value = value || "";
+    } else {
+        console.warn(`Element with id "${id}" not found in HTML.`);
+    }
+}
+
 function loadConfig() {
   fetch("/getnetworkconfig")
     .then(res => res.json())
     .then(config => {
       console.log("Received config:", config);
 
-      // Input field
-      document.getElementById("wifi_name").value = config.wifi_name || "";
-      document.getElementById("wifi_password").value = config.wifi_password || "";
-      document.getElementById("mqtt_user").value = config.mqtt_user || "";
-      document.getElementById("mqtt_password").value = config.mqtt_password || "";
-      document.getElementById("mqtt_server").value = config.mqtt_server || "";
-      document.getElementById("mqtt_port").value = config.mqtt_port || "";
+      // ใช้ฟังก์ชันช่วยเช็คเพื่อไม่ให้เกิด Error properties of null
+      setElementValue("wifi_name", config.wifi_name);
+      setElementValue("wifi_password", config.wifi_password);
+      setElementValue("mac_receive", config.mac_receive);
+      
+      setElementValue("mqtt_user", config.mqtt_user);
+      setElementValue("mqtt_password", config.mqtt_password);
+      setElementValue("mqtt_server", config.mqtt_server);
+      setElementValue("mqtt_port", config.mqtt_port);
+      setElementValue("ip_address", config.ip_address);
+      setElementValue("subnet_mask", config.subnet_mask);
+      setElementValue("default_gateway", config.default_gateway);
 
-      document.getElementById("ip_address").value = config.ip_address || "";
-      document.getElementById("subnet_mask").value = config.subnet_mask || "";
-      document.getElementById("default_gateway").value = config.default_gateway || "";
-
-      // Toggle: WIFI MODE
+      // ส่วนของ Toggle ก็ควรเช็คเหมือนกัน
       const wifiToggle = document.getElementById("wifiModeToggle");
-      if (config.wifi_mode === "1") {
-        wifiToggle.checked = true;
-        document.getElementById("wifi-mode").textContent = "STATION";
-      } else {
-        wifiToggle.checked = false;
-        document.getElementById("wifi-mode").textContent = "ACCESS POINT";
+      const wifiModeLabel = document.getElementById("wifi-mode");
+      if (wifiToggle) {
+          wifiToggle.checked = config.wifi_mode === "1";
+          if (wifiModeLabel) {
+              wifiModeLabel.textContent = config.wifi_mode === "1" ? "STATION" : "ACCESS POINT";
+          }
       }
 
-      // Toggle: IP CONFIG
       const ipConfigToggle = document.getElementById("ipConfigToggle");
-      if (config.ip_config === "1") {
-        ipConfigToggle.checked = true;
-        document.getElementById("ip-hide").style.display = "block";
-      } else {
-        ipConfigToggle.checked = false;
-        document.getElementById("ip-hide").style.display = "none";
+      const ipHideSection = document.getElementById("ip-hide");
+      if (ipConfigToggle) {
+          ipConfigToggle.checked = config.ip_config === "1";
+          if (ipHideSection) {
+              ipHideSection.style.display = config.ip_config === "1" ? "block" : "none";
+          }
       }
     })
     .catch(err => console.error("Config load error:", err));
