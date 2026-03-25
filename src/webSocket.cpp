@@ -17,6 +17,7 @@ String wsAllDataBase64()
         ///////////////////////Serial Sent////////////////////////////
     doc["Serial"] = wsSerial;
 
+    doc["espnow"] = espnowConnected;
     doc["data1"] = "data1";
     doc["data2"] = "data2";
 

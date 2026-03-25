@@ -5,7 +5,7 @@
 #define PIN_FIRE 25
 
 #define DEADZONE 180
-#define SEND_INTERVAL 30     // max rate ~33Hz
+#define SEND_INTERVAL 30 // max rate ~33Hz
 
 typedef struct
 {
@@ -22,6 +22,19 @@ unsigned long lastSend = 0;
 // แยก filter ของแต่ละ pin
 float steerFiltered = 0;
 float throttleFiltered = 0;
+
+bool espnowConnected = false;
+unsigned long lastEspNowOK = 0;
+const unsigned long espnowTimeout = 1000; // 1 วินาที
+
+void onEspNowSend(const uint8_t *mac_addr, esp_now_send_status_t status)
+{
+  if (status == ESP_NOW_SEND_SUCCESS)
+  {
+    espnowConnected = true;
+    lastEspNowOK = millis();
+  }
+}
 
 int readFiltered(int pin, float &filtered)
 {
@@ -94,5 +107,9 @@ void operation()
     lastData = data;
     lastSend = millis();
   }
-}
 
+  if (millis() - lastEspNowOK > espnowTimeout)
+  {
+    espnowConnected = false;
+  }
+}
